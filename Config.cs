@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Modworks = bwdyworks.Modworks;
 
 namespace PersonalEffects
 {
@@ -48,7 +49,7 @@ namespace PersonalEffects
         public static Dictionary<string, ConfigNPC> Data;
         private static ConfigNPC NoData;
         public static bool ready = false;
-        public static void Load()
+        public static void Load(string directory)
         {
             NoData = new ConfigNPC
             {
@@ -61,7 +62,7 @@ namespace PersonalEffects
             };
 
 
-            string filepath = Mod.Instance.Helper.DirectoryPath + Path.DirectorySeparatorChar + "config.json";
+            string filepath = directory + "config.json";
             if (File.Exists(filepath))
             {
                 try
@@ -72,13 +73,13 @@ namespace PersonalEffects
                 }
                 catch (Exception e)
                 {
-                    Mod.Instance.Monitor.Log("Failed to read config file: " + e.Message, StardewModdingAPI.LogLevel.Error);
+                    Modworks.Log.Error("Failed to read config file: " + e.Message);
                 }
                 foreach(ConfigNPC cnpc in Data.Values)
                 {
                     if (cnpc.Enabled)
                     {
-                        Mod.Instance.Monitor.Log("Enabled for NPC " + cnpc.Name, StardewModdingAPI.LogLevel.Info);
+                        Modworks.Log.Trace("Enabled for NPC " + cnpc.Name);
                     }
                 }
             }

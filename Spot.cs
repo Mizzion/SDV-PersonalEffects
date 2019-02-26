@@ -3,6 +3,7 @@ using StardewModdingAPI;
 using StardewValley;
 using System;
 using System.Collections.Generic;
+using Modworks = bwdyworks.Modworks;
 using System.Linq;
 
 namespace PersonalEffects
@@ -35,7 +36,7 @@ namespace PersonalEffects
                     {
                         if (o1.displayName.Contains("Panties") || o1.displayName.Contains("Underwear"))
                         {
-                            if (Mod.ModUtil.Debug) Mod.Instance.Monitor.Log("Despawning item from " + ss.Location, LogLevel.Debug);
+                            if (Mod.Debug) Modworks.Log.Trace("Despawning item from " + ss.Location);
                             l.objects.Remove(pos);
                         }
                     }
@@ -53,14 +54,14 @@ namespace PersonalEffects
                         {
                             var npcd = Config.Data[ss.NPC];
                             string sid = "px" + npcd.Abbreviate() + (npcd.HasMaleItems() ? "m" : "f") + (new Random(DateTime.Now.Millisecond).Next(2) + 1);
-                            int ? id = Mod.ModUtil.GetModItemId(sid);
+                            int ? id = Modworks.Items.GetModItemId(Mod.Module, sid);
                             if(!id.HasValue)
                             {
-                                Mod.Instance.Monitor.Log("Attempted to spawn forage of invalid item id: " + sid, LogLevel.Warn);
+                                Modworks.Log.Warn("Attempted to spawn forage of invalid item id: " + sid);
                                 continue;
                             }
-                            var i = Mod.ModUtil.CreateItemstack(id.Value, 1);
-                            if(Mod.ModUtil.Debug) Mod.Instance.Monitor.Log("Spawning forage item " + sid + " at " + ss.Location + " (" + ss.X + ", " + ss.Y + ")", LogLevel.Info);
+                            var i = Modworks.Items.CreateItemstack(id.Value, 1);
+                            if(Mod.Debug) Modworks.Log.Trace("Spawning forage item " + sid + " at " + ss.Location + " (" + ss.X + ", " + ss.Y + ")");
                             l.objects.Add(pos, i);
                         }
                     }
@@ -70,7 +71,7 @@ namespace PersonalEffects
 
         public int RollQuality()
         {
-            int luv = Mod.ModUtil.GetFriendshipPoints(NPC);
+            int luv = Modworks.Player.GetFriendshipPoints(NPC);
             Random rng = new Random(DateTime.Now.Millisecond);
             int mq = luv / 500;
             int quality = (mq > 0 && rng.Next(100) < 15 * mq) ? 1 : 0;

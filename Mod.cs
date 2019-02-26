@@ -1,19 +1,17 @@
 ﻿using StardewModdingAPI;
 using StardewValley;
 using StardewModdingAPI.Events;
+using Modworks = bwdyworks.Modworks;
 using System;
 
 namespace PersonalEffects
 {
     public class Mod : StardewModdingAPI.Mod
     {
-#if DEBUG
-        private static readonly bool DEBUG = true;
-#else
-        private static readonly bool DEBUG = false;
-#endif
-        public static Mod Instance;
-        public static bwdyworks.ModUtil ModUtil;
+        internal static bool Debug = false;
+        [System.Diagnostics.Conditional("DEBUG")]
+        public void EntryDebug() { Debug = true; }
+        internal static string Module;
 
         public static int tickUpdateLimiter = 0;
         public static bool EatingPrimed = false;
@@ -22,20 +20,18 @@ namespace PersonalEffects
 
         public override void Entry(IModHelper helper)
         {
-            ModUtil = new bwdyworks.ModUtil(this);
-            Instance = this;
-            if (ModUtil.StartConfig(DEBUG))
+            Module = helper.ModRegistry.ModID;
+            EntryDebug();
+            if (!Modworks.InstallModule(Module, Debug)) return;
+
+            Config.Load(Helper.DirectoryPath + System.IO.Path.DirectorySeparatorChar);
+            if (Config.ready)
             {
-                Config.Load();
-                if (Config.ready)
-                {
-                    AddItems();
-                    Spot.Setup(helper);
-                }
-                if (DEBUG) helper.Events.Input.ButtonPressed += Input_ButtonPressed;
-                ModUtil.EndConfig();
-                helper.Events.GameLoop.UpdateTicked += GameLoop_UpdateTicked;
+                AddItems();
+                Spot.Setup(helper);
             }
+            if (Debug) helper.Events.Input.ButtonPressed += Input_ButtonPressed;
+            helper.Events.GameLoop.UpdateTicked += GameLoop_UpdateTicked;
         }
 
         private void GameLoop_UpdateTicked(object sender, UpdateTickedEventArgs e)
@@ -73,24 +69,24 @@ namespace PersonalEffects
             if (npcName == null) return;
             var npcConfig = Config.GetNPC(npcName);
             Game1.showGlobalMessage("You feel like this changes your relationship with " + npcConfig.Name + ".");
-            int friendship = ModUtil.GetFriendshipPoints(npcName);
+            int friendship = Modworks.Player.GetFriendshipPoints(npcName);
             int chance = 500 + (int)((StardewValley.Game1.dailyLuck * 10f) * 500f); //0-1000
             Random rng = new Random(DateTime.Now.Millisecond);
             int strikepoint = rng.Next(1250);
-            if (DEBUG) Mod.Instance.Monitor.Log(chance + " > " + strikepoint, LogLevel.Info);
+            if (Debug) Modworks.Log.Trace(chance + " > " + strikepoint);
             if (chance > strikepoint)
             {
-                ModUtil.SetFriendshipPoints(npcName, Math.Min(2500, friendship + 125));
-                if(DEBUG) Mod.Instance.Monitor.Log("Relationship increased by 125", LogLevel.Info);
+                Modworks.Player.SetFriendshipPoints(npcName, Math.Min(2500, friendship + 125));
+                if(Debug) Modworks.Log.Trace("Relationship increased by 125");
             }
             else
             {
-                ModUtil.SetFriendshipPoints(npcName, Math.Max(friendship - 50, 0));
-                if (DEBUG) Mod.Instance.Monitor.Log("Relationship decreased by 50", LogLevel.Info);
+                Modworks.Player.SetFriendshipPoints(npcName, Math.Max(friendship - 50, 0));
+                if (Debug) Modworks.Log.Trace("Relationship decreased by 50");
             }
         }
 
-        public static void AddItems()
+        public void AddItems()
         {
             AddPersonalEffectItem("Haley", 1, "These look expensive.", 41);
             AddPersonalEffectItem("Haley", 2, "These have clearly been worn.", 29);
@@ -156,9 +152,9 @@ namespace PersonalEffects
             AddPersonalEffectItem("George", 2, "It's dangerous to go alone! Take this.", 15);
         }
 
-        public static void AddPersonalEffectItem(string npc, int variant, string desc, int price)
+        public void AddPersonalEffectItem(string npc, int variant, string desc, int price)
         {
-            ModUtil.AddItem(new bwdyworks.BasicItemEntry(Instance, "px" + Config.GetNPC(npc).Abbreviate() + (Config.GetNPC(npc).HasMaleItems() ? "m" : "f") + variant, price, 10, "Personal Effects", StardewValley.Object.sellAtFishShopCategory, Config.GetNPC(npc).Name + "'s " + (Config.GetNPC(npc).HasMaleItems() ? "Underwear" : "Panties"), desc));
+            Modworks.Items.AddItem(Module, new bwdyworks.BasicItemEntry(this, "px" + Config.GetNPC(npc).Abbreviate() + (Config.GetNPC(npc).HasMaleItems() ? "m" : "f") + variant, price, 10, "Personal Effects", StardewValley.Object.sellAtFishShopCategory, Config.GetNPC(npc).Name + "'s " + (Config.GetNPC(npc).HasMaleItems() ? "Underwear" : "Panties"), desc));
         }
 
         static string UppercaseFirst(string s)
@@ -176,39 +172,39 @@ namespace PersonalEffects
             {
 
                 Monitor.Log("friendship power!");
-                ModUtil.SetFriendshipPoints("Alex", 2500);
-                ModUtil.SetFriendshipPoints("Elliott", 2500);
-                ModUtil.SetFriendshipPoints("Harvey", 2500);
-                ModUtil.SetFriendshipPoints("Sam", 2500);
-                ModUtil.SetFriendshipPoints("Sebastian", 2500);
-                ModUtil.SetFriendshipPoints("Shane", 2500);
-                ModUtil.SetFriendshipPoints("Abigail", 2500);
-                ModUtil.SetFriendshipPoints("Emily", 2500);
-                ModUtil.SetFriendshipPoints("Haley", 2500);
-                ModUtil.SetFriendshipPoints("Leah", 2500);
-                ModUtil.SetFriendshipPoints("Maru", 2500);
-                ModUtil.SetFriendshipPoints("Penny", 2500);
-                ModUtil.SetFriendshipPoints("Caroline", 2500);
-                ModUtil.SetFriendshipPoints("Clint", 2500);
-                ModUtil.SetFriendshipPoints("Demetrius", 2500);
-                ModUtil.SetFriendshipPoints("Gus", 2500);
-                ModUtil.SetFriendshipPoints("Jodi", 2500);
-                ModUtil.SetFriendshipPoints("Kent", 2500);
-                ModUtil.SetFriendshipPoints("Lewis", 2500);
-                ModUtil.SetFriendshipPoints("Marnie", 2500);
-                ModUtil.SetFriendshipPoints("Pam", 2500);
-                ModUtil.SetFriendshipPoints("Pierre", 2500);
-                ModUtil.SetFriendshipPoints("Robin", 2500);
-                ModUtil.SetFriendshipPoints("Sandy", 2500);
-                ModUtil.SetFriendshipPoints("Willy", 2500);
-                ModUtil.SetFriendshipPoints("Wizard", 2500);
-                ModUtil.SetFriendshipPoints("Vincent", 2500);
-                ModUtil.SetFriendshipPoints("Jas", 2500);
-                ModUtil.SetFriendshipPoints("Linus", 2500);
-                ModUtil.SetFriendshipPoints("Evelyn", 2500);
-                ModUtil.SetFriendshipPoints("George", 2500);
+                Modworks.Player.SetFriendshipPoints("Alex", 2500);
+                Modworks.Player.SetFriendshipPoints("Elliott", 2500);
+                Modworks.Player.SetFriendshipPoints("Harvey", 2500);
+                Modworks.Player.SetFriendshipPoints("Sam", 2500);
+                Modworks.Player.SetFriendshipPoints("Sebastian", 2500);
+                Modworks.Player.SetFriendshipPoints("Shane", 2500);
+                Modworks.Player.SetFriendshipPoints("Abigail", 2500);
+                Modworks.Player.SetFriendshipPoints("Emily", 2500);
+                Modworks.Player.SetFriendshipPoints("Haley", 2500);
+                Modworks.Player.SetFriendshipPoints("Leah", 2500);
+                Modworks.Player.SetFriendshipPoints("Maru", 2500);
+                Modworks.Player.SetFriendshipPoints("Penny", 2500);
+                Modworks.Player.SetFriendshipPoints("Caroline", 2500);
+                Modworks.Player.SetFriendshipPoints("Clint", 2500);
+                Modworks.Player.SetFriendshipPoints("Demetrius", 2500);
+                Modworks.Player.SetFriendshipPoints("Gus", 2500);
+                Modworks.Player.SetFriendshipPoints("Jodi", 2500);
+                Modworks.Player.SetFriendshipPoints("Kent", 2500);
+                Modworks.Player.SetFriendshipPoints("Lewis", 2500);
+                Modworks.Player.SetFriendshipPoints("Marnie", 2500);
+                Modworks.Player.SetFriendshipPoints("Pam", 2500);
+                Modworks.Player.SetFriendshipPoints("Pierre", 2500);
+                Modworks.Player.SetFriendshipPoints("Robin", 2500);
+                Modworks.Player.SetFriendshipPoints("Sandy", 2500);
+                Modworks.Player.SetFriendshipPoints("Willy", 2500);
+                Modworks.Player.SetFriendshipPoints("Wizard", 2500);
+                Modworks.Player.SetFriendshipPoints("Vincent", 2500);
+                Modworks.Player.SetFriendshipPoints("Jas", 2500);
+                Modworks.Player.SetFriendshipPoints("Linus", 2500);
+                Modworks.Player.SetFriendshipPoints("Evelyn", 2500);
+                Modworks.Player.SetFriendshipPoints("George", 2500);
 
-                var pos = ModUtil.GetLocalPlayerStandingTileCoordinate();
+                var pos = Modworks.Player.GetStandingTileCoordinate();
                 this.Monitor.Log($"Loc: {Game1.currentLocation.Name} @ {pos[0]} x {pos[1]}", LogLevel.Alert);
             }
         }
